@@ -13,6 +13,10 @@ data class Game(
      *  displays game main menu
      *  & requests user input
      *  (reset | shuffle | get | exit)
+     *  @throws ExitGameException
+     *  @throws WrongActionException
+     *  @throws InsufficientCardsException
+     *  @throws InvalidNumberOfCardsException
      */
     fun mainMenu() {
         println("${S.MENU_MSG}")
