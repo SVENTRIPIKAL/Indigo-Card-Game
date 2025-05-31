@@ -1,11 +1,19 @@
-import data.Rank
-import data.S
-import data.Suit
+import data.ExitGameException
 import model.Game
 
-
 fun main() {
-    println(Rank.entries.joinToString("${S.BLANK_SPACE}"))
-    println(Suit.entries.joinToString("${S.BLANK_SPACE}"))
-    Game().printDeck()
+    val game = Game()
+    while (true) {
+        try {
+            game.mainMenu()
+        } catch (e: Exception) {
+            when(e) {
+                is ExitGameException -> {
+                    println(e.message)
+                    break
+                }
+                else -> println(e.message)
+            }
+        }
+    }
 }
