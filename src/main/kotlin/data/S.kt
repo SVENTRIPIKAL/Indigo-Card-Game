@@ -3,17 +3,17 @@ package data
 enum class S(val string: String) {
     ASTERISK("*"),
     BLANK_SPACE(" "),
-    RESET_OPTION("reset"),
-    SHUFFLE_OPTION("shuffle"),
-    GET_OPTION("get"),
+    YES_OPTION("yes"),
+    NO_OPTION("no"),
     EXIT_OPTION("exit"),
-    MENU_MSG("Choose an action (reset, shuffle, get, exit):"),
-    RESET_SHUFFLE_MSG("Card deck is *."),
-    EXIT_MSG("Bye"),
-    WRONG_ACTION_MSG("Wrong Action."),
-    NUM_OF_CARDS_MSG("Number of cards:"),
-    INVALID_NUM_OF_CARDS_MSG("Invalid number of cards."),
-    INSUFFICIENT_CARDS_MSG("The remaining cards are insufficient to meet the request."),
+    TITLE_MSG("Indigo Card Game"),
+    GAME_OVER_MSG("Game Over"),
+    FIRST_PROMPT_MSG("Play first?"),
+    INITIAL_CARDS_MSG("Initial cards on the table: *"),
+    TABLE_CARDS_TOP_MSG("** cards on the table, and the top card is *"),
+    IN_HAND_MSG("Cards in hand: *"),
+    CHOOSE_CARD_MSG("Choose a card to play (1-*):"),
+    COMPUTER_PLAY_MSG("Computer plays *"),
     ;
     override fun toString() = string
 }
