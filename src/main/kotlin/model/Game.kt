@@ -6,17 +6,17 @@ import data.S
 import data.Suit
 
 /**
+ *  returns pair as Rank/Suit icon String.
+ */
+fun Pair<Rank, Suit>.asString(): String = "${this.first}${this.second}"
+
+/**
  *  returns the provided list of Pairs
  *  of Ranks/Suits as a 1-row String.
  */
 fun List<Pair<Rank, Suit>>.asString(): String {
-    return this.joinToString("${S.BLANK_SPACE}") { "${it.first}${it.second}" }
+    return this.joinToString("${S.BLANK_SPACE}") { it.asString() }
 }
-
-/**
- *  returns pair as Rank/Suit icon String.
- */
-fun Pair<Rank, Suit>.asString(): String = "${this.first}${this.second}"
 
 
 /**
@@ -30,13 +30,13 @@ fun Pair<Rank, Suit>.asString(): String = "${this.first}${this.second}"
  */
 class Game {
 
-    val player: Player = Player(listOf())
-    val computer: Computer = Computer(listOf())
-    var currentPlayer = player
+    private val player: Player = Player(listOf())
+    private val computer: Computer = Computer(listOf())
+    private var currentPlayer = player
 
-    var stage = Stage.PROMPT_FIRST
-    var gameDeck: List<Pair<Rank, Suit>> = listOf()
-    var tableCards: List<Pair<Rank, Suit>> = listOf()
+    private var stage = Stage.PROMPT_FIRST
+    private var gameDeck: List<Pair<Rank, Suit>> = listOf()
+    private var tableCards: List<Pair<Rank, Suit>> = listOf()
 
 
     /**
@@ -133,7 +133,7 @@ class Game {
      *  the main player.
      *  @param hand list of 1-6 cards
      */
-    open inner class Player(var hand: List<Pair<Rank, Suit>>) {
+    private open inner class Player(var hand: List<Pair<Rank, Suit>>) {
 
         /**
          *  sets the player's hand to
@@ -196,11 +196,8 @@ class Game {
          *  table cards. If hand is empty, the
          *  Computer deals an extra 6 cards to
          *  the player from game deck. If the game deck
-         *  is empty, a new deck is created, 4 new table
-         *  cards are set, & 6 cards dealt to each player.
-         *  If max rounds have been reached, the game
-         *  stage is automatically set to GAME_OVER &
-         *  the game ends.
+         *  is empty, the game stage is automatically
+         *  set to GAME_OVER & the game ends.
          *  @see computer
          *  @see stage
          *  @see Stage.GAME_OVER
@@ -208,25 +205,12 @@ class Game {
          *  @see N.SIX
          */
         fun promptTurn() {
-            if (computer.isDealLimitReached()) {
-                stage = Stage.GAME_OVER
-            } else {
-                if (isHandEmpty()) {
-                    if (isGameDeckEmpty()) {
-
-                        computer.createDeck()
-
-                        computer.dealCards()
-
-                        if (computer.isDealLimitReached().not()) printInitial()
-
-                    } else hand = computer.drawFromDeck(N.SIX.int)
-                }
-                if (computer.isDealLimitReached().not()) {
-                    printTable()
-                    obtainPlayerInput()
-                }
+            printTable()
+            if (isHandEmpty()) {
+                if (isGameDeckEmpty()) stage = Stage.GAME_OVER
+                else hand = computer.drawFromDeck(N.SIX.int)
             }
+            if (!isHandEmpty()) obtainPlayerInput()
         }
 
         /**
@@ -260,9 +244,10 @@ class Game {
          *  @see Stage.GAME_OVER
          */
         open fun obtainPlayerInput() {
-            printChooseCard()
+            printInHand()
             val handSize = hand.size
             while (true) {
+                printChooseCard()
                 when (val x = readln().lowercase()) {
                     in "${N.ONE}".."$handSize" -> {
                         drawFromHand(x.toInt())
@@ -279,18 +264,24 @@ class Game {
 
         /**
          *  prints the player's in-hand cards
-         *  & prints the prompt for user input
          *  @see S.IN_HAND_MSG
          *  @see hand
-         *  @see S.CHOOSE_CARD_MSG
          */
-        private fun printChooseCard() {
+        private fun printInHand() {
             println(
                 "${S.IN_HAND_MSG}".replace(
                     "${S.ASTERISK}",
                     hand.asString()
                 )
             )
+        }
+
+        /**
+         *  prints the prompt for user input
+         *  @see S.CHOOSE_CARD_MSG
+         *  @see hand
+         */
+        private fun printChooseCard() {
             println(
                 "${S.CHOOSE_CARD_MSG}".replace(
                     "${S.ASTERISK}",
@@ -313,12 +304,9 @@ class Game {
      *  Player class. includes additional
      *  functions for dealing game cards.
      *  @param hand list of 1-6 cards
-     *  @property dealCount number of games dealt (max: 4+)
      *  @see Player
      */
-    inner class Computer(hand: List<Pair<Rank, Suit>>): Player(hand) {
-
-        var dealCount = N.ZERO.int
+    private inner class Computer(hand: List<Pair<Rank, Suit>>): Player(hand) {
 
         /**
          *  Computer prompt & auto-draw random
@@ -357,10 +345,10 @@ class Game {
         }
 
         /**
-         *  increases dealCount by 1, updates
-         *  tableCards with 4 cards, updates
-         *  each player's hand with 6 cards,
-         *  & shuffles the game deck afterwards.
+         *  updates tableCards with 4 cards,
+         *  updates each player's hand with
+         *  6 cards, & shuffles the game
+         *  deck afterwards.
          *  @see tableCards
          *  @see N.FOUR
          *  @see player
@@ -368,7 +356,6 @@ class Game {
          *  @see computer
          */
         fun dealCards() {
-            increaseDealCount()
             tableCards = drawFromDeck(n = N.FOUR.int)
             player.assignHand(cards = drawFromDeck(N.SIX.int))
             computer.assignHand(cards = drawFromDeck(N.SIX.int))
@@ -390,20 +377,6 @@ class Game {
             gameDeck = remainingCards
             return requestedCards
         }
-
-        /**
-         *  returns true if deal
-         *  limit (4+) has been reached.
-         *  @see dealCount
-         *  @see N.FOUR
-         */
-        fun isDealLimitReached(): Boolean = dealCount > N.FOUR.int
-
-        /**
-         *  increases deal count by 1.
-         *  @see dealCount
-         */
-        private fun increaseDealCount() = dealCount++
 
         /**
          *  shuffles the order of the

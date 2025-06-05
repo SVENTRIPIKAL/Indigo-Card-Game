@@ -3,6 +3,7 @@ package data
 /**
  *  enum class housing
  *  Integer constants
+ *  @param int integer value
  *  @property N.ZERO
  *  @property N.ONE
  *  @property N.FOUR

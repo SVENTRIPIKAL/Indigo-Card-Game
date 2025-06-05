@@ -3,6 +3,7 @@ package data
 /**
  *  enum class housing
  *  String constants
+ *  @param string text string value
  *  @property S.ASTERISK
  *  @property S.BLANK_SPACE
  *  @property S.YES_OPTION
