@@ -13,7 +13,7 @@ package data
  *  @property S.GAME_OVER_MSG
  *  @property S.FIRST_PROMPT_MSG
  *  @property S.INITIAL_CARDS_MSG
- *  @property S.TABLE_CARDS_TOP_MSG
+ *  @property S.TABLE_CARDS_MSG
  *  @property S.IN_HAND_MSG
  *  @property S.CHOOSE_CARD_MSG
  *  @property S.COMPUTER_PLAY_MSG
@@ -21,17 +21,23 @@ package data
 enum class S(val string: String) {
     ASTERISK("*"),
     BLANK_SPACE(" "),
+    EMPTY_STRING(""),
     YES_OPTION("yes"),
     NO_OPTION("no"),
     EXIT_OPTION("exit"),
     TITLE_MSG("Indigo Card Game"),
     GAME_OVER_MSG("Game Over"),
     FIRST_PROMPT_MSG("Play first?"),
-    INITIAL_CARDS_MSG("Initial cards on the table: *"),
-    TABLE_CARDS_TOP_MSG("** cards on the table, and the top card is *"),
-    IN_HAND_MSG("Cards in hand: *"),
-    CHOOSE_CARD_MSG("Choose a card to play (1-*):"),
-    COMPUTER_PLAY_MSG("Computer plays *")
+    INITIAL_CARDS_MSG("Initial cards on the table: $ASTERISK"),
+    TABLE_CARDS_MSG("$ASTERISK$ASTERISK cards on the table$ASTERISK"),
+    TABLE_TOP_MSG(", and the top card is $ASTERISK"),
+    IN_HAND_MSG("Cards in hand: $ASTERISK"),
+    CHOOSE_CARD_MSG("Choose a card to play (1-$ASTERISK):"),
+    COMPUTER_PLAY_MSG("Computer plays $ASTERISK\n"),
+    WINNER_MSG("$ASTERISK wins cards"),
+    SCORE_MSG("Score"),
+    CARDS_MSG("Cards"),
+    STATS_MSG("$ASTERISK$ASTERISK$ASTERISK: Player $ASTERISK$ASTERISK - Computer $ASTERISK"),
     ;
     override fun toString() = string
 }
