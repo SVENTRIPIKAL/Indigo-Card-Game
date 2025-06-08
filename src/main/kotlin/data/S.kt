@@ -6,6 +6,7 @@ package data
  *  @param string text string value
  *  @property S.ASTERISK
  *  @property S.BLANK_SPACE
+ *  @property S.EMPTY_STRING
  *  @property S.YES_OPTION
  *  @property S.NO_OPTION
  *  @property S.EXIT_OPTION
@@ -14,9 +15,14 @@ package data
  *  @property S.FIRST_PROMPT_MSG
  *  @property S.INITIAL_CARDS_MSG
  *  @property S.TABLE_CARDS_MSG
+ *  @property S.TABLE_TOP_MSG
  *  @property S.IN_HAND_MSG
  *  @property S.CHOOSE_CARD_MSG
  *  @property S.COMPUTER_PLAY_MSG
+ *  @property S.WINNER_MSG
+ *  @property S.SCORE_MSG
+ *  @property S.CARDS_MSG
+ *  @property S.STATS_MSG
  */
 enum class S(val string: String) {
     ASTERISK("*"),

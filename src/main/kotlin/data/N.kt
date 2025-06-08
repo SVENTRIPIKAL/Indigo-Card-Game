@@ -6,8 +6,10 @@ package data
  *  @param int integer value
  *  @property N.ZERO
  *  @property N.ONE
+ *  @property N.THREE
  *  @property N.FOUR
  *  @property N.SIX
+ *  @property N.TWENTY_THREE
  */
 enum class N(val int: Int) {
     ZERO(0),
