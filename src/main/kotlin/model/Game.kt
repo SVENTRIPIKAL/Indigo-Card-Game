@@ -18,25 +18,104 @@ fun List<Pair<Rank, Suit>>.asString(): String {
     return this.joinToString("${S.BLANK_SPACE}") { it.asString() }
 }
 
+/**
+ *  returns the list
+ *  mapping each element
+ *  to their associated
+ *  indices in the provided list
+ *  incremented by 1
+ */
+fun List<Pair<Rank, Suit>>.mapToIndices(l: List<Pair<Rank, Suit>>): List<Int> {
+    return this.map { l.indexOf(it).inc() }
+}
+
+/**
+ *  returns true if the
+ *  list contains similar
+ *  Ranks
+ */
+fun List<Pair<Rank, Suit>>.containsSameRanks(): Boolean {
+    return this.obtainSameRanks().isNotEmpty()
+}
+
+/**
+ *  returns true if the
+ *  list contains similar
+ *  Suits
+ */
+fun List<Pair<Rank, Suit>>.containsSameSuits(): Boolean {
+    return this.obtainSameSuits().isNotEmpty()
+}
+
+/**
+ *  returns a sublist
+ *  from the list of
+ *  cards that have
+ *  a similar Rank
+ */
+fun List<Pair<Rank, Suit>>.obtainSameRanks(): List<Pair<Rank, Suit>> {
+    return this.filter { p -> count { it.first == p.first } > N.ONE.int }
+}
+
+/**
+ *  returns a sublist
+ *  from the list of
+ *  cards that have
+ *  a similar Suit
+ */
+fun List<Pair<Rank, Suit>>.obtainSameSuits(): List<Pair<Rank, Suit>> {
+    return this.filter { p -> count { it.second == p.second } > N.ONE.int }
+}
+
+/**
+ *  returns true if the list of cards
+ *  contains a similar Rank/Suit of the
+ *  provided card for the number of
+ *  times requested. Defaults to seeking
+ *  for 2 or more matches unless
+ *  requesting for 1 match specifically
+ */
+fun List<Pair<Rank, Suit>>.containsCandidate(p: Pair<Rank, Suit>?, n: Int = N.ZERO.int): Boolean {
+    return p?.let {
+        val candidatesCount = this.obtainCandidates(p).count()
+        when (n) {
+            N.ONE.int -> candidatesCount == N.ONE.int
+            else -> candidatesCount > N.ONE.int
+        }
+    } ?: false
+}
+
+/**
+ *  returns a sublist from
+ *  the list of cards that
+ *  are considered Round
+ *  Winning Candidate cards
+ */
+fun List<Pair<Rank, Suit>>.obtainCandidates(p: Pair<Rank, Suit>?): List<Pair<Rank, Suit>> {
+    return p?.let {
+        this.filter { it.first == p.first || it.second == p.second }
+    } ?: this
+}
+
 
 /**
  *  holds the current game's state
+ *  @property gameDeck list of pairs (Rank, Suit) representing 52 cards
+ *  @property tableCards list of cards currently on the game table
  *  @property player player class representing main player
  *  @property computer computer class & game card dealer
  *  @property currentPlayer indicates which player is currently in play
  *  @property stage indicates which stage the game is currently in play
- *  @property gameDeck list of pairs (Rank, Suit) representing 52 cards
- *  @property tableCards list of cards currently on the game table
  */
 class Game {
 
-    private val player: Player = Player()
-    private val computer: Computer = Computer()
-    private var currentPlayer = player
-
-    private var stage = Stage.PROMPT_FIRST
     private var gameDeck: List<Pair<Rank, Suit>> = listOf()
     private var tableCards: List<Pair<Rank, Suit>> = listOf()
+    private val player: Player = Player()
+    private val computer: Computer = Computer()
+
+    private var currentPlayer = player
+    private var stage = Stage.PROMPT_FIRST
 
 
     /**
@@ -145,7 +224,7 @@ class Game {
      *  @see Computer
      *  @see Player
      */
-    fun updatePreviousWinner() {
+    private fun updatePreviousWinner() {
         when (currentPlayer) {
             is Computer -> {
                 computer.assignPreviousWinState(true)
@@ -177,7 +256,7 @@ class Game {
         // if cards left on table
         if (tableCards.isNotEmpty()) {
             // check who won last round
-            val p = if (player.obtainPreviousWinState()) player else computer
+            val p = if (player.previousWinner) player else computer
             // update player cards with remaining table cards
             p.updateCardsWon(tableCards)
             // update player score
@@ -185,20 +264,20 @@ class Game {
         }
         when {
             // if both players did not win any cards
-            player.obtainCardsWon().isEmpty() && computer.obtainCardsWon().isEmpty() -> {
+            player.cardsWon.isEmpty() && computer.cardsWon.isEmpty() -> {
                 // check who moved first
-                val p = if (player.obtainMovedFirst()) player else computer
+                val p = if (player.movedFirst) player else computer
                 // update to max points & cards won
                 p.updatePointsWon(N.TWENTY_THREE.int)
                 p.updateCardsWon(tableCards)
             }
             // if player has most cards
-            player.obtainCardsWon().size > computer.obtainCardsWon().size -> {
+            player.cardsWon.size > computer.cardsWon.size -> {
                 // add +3 to player score
                 player.updatePointsWon(N.THREE.int)
             }
             // if computer has most cards
-            computer.obtainCardsWon().size > player.obtainCardsWon().size -> {
+            computer.cardsWon.size > player.cardsWon.size -> {
                 // add +3 to computer score
                 computer.updatePointsWon(N.THREE.int)
             }
@@ -249,10 +328,10 @@ class Game {
                 "${S.SCORE_MSG}"
             ).replace(
                 "${S.ASTERISK}${S.ASTERISK}",
-                "${player.obtainPointsWon()}"
+                "${player.pointsWon}"
             ).replace(
                 "${S.ASTERISK}",
-                "${computer.obtainPointsWon()}"
+                "${computer.pointsWon}"
             )
         )
     }
@@ -271,10 +350,10 @@ class Game {
                 "${S.CARDS_MSG}"
             ).replace(
                 "${S.ASTERISK}${S.ASTERISK}",
-                "${player.obtainCardsWon().size}"
+                "${player.cardsWon.size}"
             ).replace(
                 "${S.ASTERISK}",
-                "${computer.obtainCardsWon().size}"
+                "${computer.cardsWon.size}"
             )
         )
     }
@@ -291,18 +370,30 @@ class Game {
      */
     private open inner class Player {
 
-        private var hand = emptyList<Pair<Rank, Suit>>()
-        private var cardsWon = emptyList<Pair<Rank, Suit>>()
-        private var pointsWon = N.ZERO.int
-        private var movedFirst = false
-        private var previousWinner = false
+        var hand = emptyList<Pair<Rank, Suit>>()
+        var cardsWon = emptyList<Pair<Rank, Suit>>()
+        var pointsWon = N.ZERO.int
+        var movedFirst = false
+        var previousWinner = false
+
 
         /**
-         *  returns the player's hand
-         *  @see hand
+         *  assigns true if the
+         *  player chose to move
+         *  first at game start
+         *  @see movedFirst
          */
-        fun obtainHand(): List<Pair<Rank, Suit>> {
-            return hand
+        fun assignFirst() {
+            movedFirst = true
+        }
+
+        /**
+         *  assigns the boolean value
+         *  to the player's previousWin state
+         *  @see previousWinner
+         */
+        fun assignPreviousWinState(boolean: Boolean){
+            previousWinner = boolean
         }
 
         /**
@@ -316,14 +407,6 @@ class Game {
         }
 
         /**
-         *  returns the player's cards won
-         *  @see cardsWon
-         */
-        fun obtainCardsWon(): List<Pair<Rank, Suit>> {
-            return cardsWon
-        }
-
-        /**
          *  update's the player's internal
          *  cumulative list of previously won cards
          *  @param winningHand the list of cards just won
@@ -334,14 +417,6 @@ class Game {
         }
 
         /**
-         *  returns the player's points won
-         *  @see pointsWon
-         */
-        fun obtainPointsWon(): Int {
-            return pointsWon
-        }
-
-        /**
          *  updates the player's cumulative
          *  points won throughout the game
          *  @param points number of points to add
@@ -349,23 +424,6 @@ class Game {
          */
         fun updatePointsWon(points: Int) {
             pointsWon += points
-        }
-
-        /**
-         *  assigns true if the
-         *  player is moving first
-         *  @see movedFirst
-         */
-        fun assignFirst() {
-            movedFirst = true
-        }
-
-        /**
-         *  returns true if player moved first
-         *  @see movedFirst
-         */
-        fun obtainMovedFirst(): Boolean {
-            return movedFirst
         }
 
         /**
@@ -383,23 +441,6 @@ class Game {
         }
 
         /**
-         *  assigns the boolean value
-         *  to the player's previousWin state
-         *  @see previousWinner
-         */
-        fun assignPreviousWinState(boolean: Boolean) {
-            previousWinner = boolean
-        }
-
-        /**
-         *  returns the player's previousWin state
-         *  @see previousWinner
-         */
-        fun obtainPreviousWinState(): Boolean {
-            return previousWinner
-        }
-
-        /**
          *  draws a card from hand & updates the
          *  table cards. If hand is empty, the
          *  Computer deals an extra 6 cards to
@@ -412,7 +453,7 @@ class Game {
          *  @see hand
          *  @see N.SIX
          */
-        fun promptTurn() {
+        open fun promptTurn() {
             printTable()
             if (isHandEmpty()) {
                 if (isGameDeckEmpty()) stage = Stage.FINAL_SCORE
@@ -496,7 +537,7 @@ class Game {
                         break
                     }
                     "${S.EXIT_OPTION}" -> {
-                        stage = Stage.FINAL_SCORE
+                        stage = Stage.GAME_OVER
                         break
                     }
                 }
@@ -649,6 +690,7 @@ class Game {
             }
         }
 
+
         /**
          *  returns player hand as String
          *  @see hand
@@ -667,16 +709,79 @@ class Game {
      *  @property pointsWon cumulative points (max: 23)
      *  @see Player
      */
-    private inner class Computer : Player() {
+    private inner class Computer: Player() {
 
         /**
-         *  Computer prompt & auto-draw random
-         *  @see N.ONE
-         *  @see S.COMPUTER_PLAY_MSG
+         *  Computer prompt. Auto-plays computer turn
          */
         override fun obtainPlayerInput() {
-            val random = (N.ONE.int..obtainHand().size).shuffled().last()
-            drawFromHand(index = random)
+            val chosenCardIndex = obtainCandidateCardIndex()
+            drawFromHand(index = chosenCardIndex)
+        }
+
+        /**
+         *  checks hand for candidate card against Top Table Card.
+         *  A candidate card is a card in-hand which a player
+         *  can use to win all cards on the table. computer
+         *  returns an index according to following logic:
+         *      1. if only 1 card in hand, plays card
+         *      2. if table not empty & hand contains only 1 candidate card, plays card
+         *      3. if table empty or hand does not contain candidate cards, plays random equivalent rank/suit card
+         *      4. if table not empty & hand contains candidate cards, plays random equivalent rank/suit card
+         *      5. if all else fails, plays random card from hand.
+         *  indices are incremented to accommodate
+         *  the decrement applied in drawFromHand function.
+         *  @see tableCards
+         *  @see N.ZERO
+         *  @see hand
+         *  @see Rank.entries
+         *  @see Suit.entries
+         *  @see N.ONE
+         *  @see drawFromHand
+         */
+        private fun obtainCandidateCardIndex(): Int {
+            // assign hand size
+            val handSize = hand.size
+            val topTableCard = if (tableCards.isNotEmpty()) tableCards.last() else null
+            return when {
+                // if only 1 card in hand, play card
+                handSize == N.ONE.int -> N.ONE.int
+                // if table not empty & hand contains only 1 candidate card, play card
+                tableCards.isNotEmpty() &&
+                hand.containsCandidate(topTableCard, N.ONE.int) -> {
+                    val singleCandidate = hand.obtainCandidates(topTableCard)
+                    singleCandidate.mapToIndices(hand).first()
+                }
+                // if table empty or hand does not contain any candidate cards, play random equivalent rank/suit
+                tableCards.isEmpty() ||
+                !hand.containsCandidate(topTableCard) -> {
+                    val equivalents = when {
+                        // contains similar suits | obtain suits
+                        hand.containsSameSuits() -> hand.obtainSameSuits()
+                        // four or less in hand && contains similar ranks | obtain ranks
+                        handSize <= N.FOUR.int && hand.containsSameRanks() -> hand.obtainSameRanks()
+                        // default return hand
+                        else -> hand
+                    }
+                    // get indices for every element in list & play random card
+                    equivalents.mapToIndices(hand).shuffled().first()
+                }
+                // if table not empty & hand contains 2 or more candidate cards
+                else -> {
+                    // get candidates
+                    val candidates = hand.obtainCandidates(topTableCard)
+                    // separate Rank/Suits candidates
+                    val suitsAsTop = candidates.filter { it.second == topTableCard?.second }
+                    val ranksAsTop = candidates.filter { it.first == topTableCard?.first }
+                    // assign whichever list holds 2 or more candidate cards with similar Ranks/Suits
+                    return when {
+                        suitsAsTop.size > N.ONE.int -> suitsAsTop
+                        ranksAsTop.size > N.ONE.int -> ranksAsTop
+                        else -> candidates
+                        // map them to indices & return randomized
+                    }.mapToIndices(hand).shuffled().first()
+                }
+            }
         }
 
         /**
