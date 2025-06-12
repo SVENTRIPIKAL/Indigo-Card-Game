@@ -20,12 +20,13 @@ fun List<Pair<Rank, Suit>>.asString(): String {
 
 /**
  *  returns the list
- *  mapping each element
- *  to their associated
- *  indices in the provided list
- *  incremented by 1
+ *  with each element
+ *  mapped to their
+ *  associated indices
+ *  within the provided
+ *  list, incremented by 1
  */
-fun List<Pair<Rank, Suit>>.mapToIndices(l: List<Pair<Rank, Suit>>): List<Int> {
+fun List<Pair<Rank, Suit>>.mapToHandIndices(l: List<Pair<Rank, Suit>>): List<Int> {
     return this.map { l.indexOf(it).inc() }
 }
 
@@ -750,7 +751,7 @@ class Game {
                 tableCards.isNotEmpty() &&
                 hand.containsCandidate(topTableCard, N.ONE.int) -> {
                     val singleCandidate = hand.obtainCandidates(topTableCard)
-                    singleCandidate.mapToIndices(hand).first()
+                    singleCandidate.mapToHandIndices(hand).first()
                 }
                 // if table empty or hand does not contain any candidate cards, play random equivalent rank/suit
                 tableCards.isEmpty() ||
@@ -764,7 +765,7 @@ class Game {
                         else -> hand
                     }
                     // get indices for every element in list & play random card
-                    equivalents.mapToIndices(hand).shuffled().first()
+                    equivalents.mapToHandIndices(hand).shuffled().first()
                 }
                 // if table not empty & hand contains 2 or more candidate cards
                 else -> {
@@ -779,7 +780,7 @@ class Game {
                         ranksAsTop.size > N.ONE.int -> ranksAsTop
                         else -> candidates
                         // map them to indices & return randomized
-                    }.mapToIndices(hand).shuffled().first()
+                    }.mapToHandIndices(hand).shuffled().first()
                 }
             }
         }
