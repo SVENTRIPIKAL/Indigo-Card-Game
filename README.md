@@ -35,7 +35,7 @@ Total possible **game points is 23** across both players.
 ```
 Indigo Card Game
 Play first?
-no
+>> no
 
 Initial cards on the table: 5♦ 9♣ A♠ A♥
 
@@ -49,7 +49,7 @@ Cards: Player 0 - Computer 5
 No cards on the table
 Cards in hand: 6♥ 6♦ 9♦ 7♠ Q♥ 2♦
 Choose a card to play (1-6):
-6
+>> 6
 1 cards on the table, and the top card is 2♦
 
 .....   .....   .....   .....   .....   .....
@@ -58,7 +58,7 @@ Choose a card to play (1-6):
 1 cards on the table, and the top card is J♠
 Cards in hand: 9♥
 Choose a card to play (1-1):
-1
+>> 1
 2 cards on the table, and the top card is 9♥
 Score: Player 15 - Computer 8
 Cards: Player 27 - Computer 25
