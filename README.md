@@ -74,7 +74,7 @@ Game Over
 * Inner Classes
 * Polymorphism
 * Enum Classes
-* When Statements
+* When Expressions
 
 ### Inspiration
 [Indigo Card Game](https://hyperskill.org/projects/214) (Kotlin) \
